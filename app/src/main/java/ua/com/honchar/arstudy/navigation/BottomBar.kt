@@ -1,5 +1,6 @@
 package ua.com.honchar.arstudy.navigation
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -7,15 +8,19 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import ua.com.honchar.arstudy.ui.theme.ARStudyTheme
 
 @Composable
 fun AppBottomBar(navController: NavHostController) {
     val screens = listOf(
-        Screen.AnimalsScreen,
-        Screen.Empty
+        Screen.Home,
+        Screen.Search,
+        Screen.Profile
     )
     BottomNavigation {
         screens.forEach { screen ->
@@ -38,10 +43,12 @@ fun RowScope.AddItem(
             Text(text = stringResource(id = screen.resourceId))
         },
         icon = {
-            Icon(
-                imageVector = screen.icon,
-                contentDescription = screen.route + " icon"
-            )
+            screen.icon?.let {
+                Icon(
+                    imageVector = it,
+                    contentDescription = screen.route + " icon"
+                )
+            }
         },
         selected = screen.route == backStackEntry.value?.destination?.route,
         onClick = {
@@ -51,4 +58,13 @@ fun RowScope.AddItem(
             }
         }
     )
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun BottomBarPreview() {
+    ARStudyTheme {
+        AppBottomBar(rememberNavController())
+    }
 }

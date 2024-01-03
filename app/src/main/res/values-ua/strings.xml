@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="home_feed">Головна</string>
+    <string name="home_home">Головна</string>
     <string name="home_search">Search</string>
     <string name="home_profile">Profile</string>
 </resources>
