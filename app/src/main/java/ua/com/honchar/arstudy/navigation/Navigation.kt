@@ -1,6 +1,5 @@
 package ua.com.honchar.arstudy.navigation
 
-import android.graphics.drawable.Icon
 import android.os.Bundle
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
@@ -9,7 +8,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -17,11 +16,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.google.gson.Gson
 import ua.com.honchar.arstudy.R
-import ua.com.honchar.arstudy.presentation.Animal
 import ua.com.honchar.arstudy.extensions.parcelable
+import ua.com.honchar.arstudy.navigation.Screen.Companion.CATEGORY_ID
+import ua.com.honchar.arstudy.presentation.Animal
 import ua.com.honchar.arstudy.presentation.screens.Empty
 import ua.com.honchar.arstudy.presentation.screens.categories.CategoriesScreen
-import ua.com.honchar.arstudy.presentation.screens.search.ModelsScreen
+import ua.com.honchar.arstudy.presentation.screens.models.ModelsScreen
+import ua.com.honchar.arstudy.presentation.screens.modules.ModulesScreen
 import ua.com.honchar.arstudy.presentation.screens.search.SearchScreen
 
 sealed class Screen(
@@ -29,19 +30,30 @@ sealed class Screen(
     val resourceId: Int,
     val icon: ImageVector?
 ) {
+
+    // Bottom nav bar
     object Home : Screen(route = "home", R.string.home_home, Icons.Outlined.Home)
     object Search : Screen(route = "search", R.string.home_search, Icons.Outlined.Search)
     object Profile : Screen(route = "profile", R.string.home_profile, Icons.Outlined.Person)
-    object Models : Screen(route = "models", 0, null)
 
 
-    fun withArgs(vararg args: String): String {
-        return buildString {
-            append(route)
-            args.forEach { arg ->
-                append("/$arg")
-            }
-        }
+    object ModelsByCategory :
+        Screen(route = "modelsByCategory?$CATEGORY_ID={$CATEGORY_ID}", 0, null) {
+        fun updateRouteWithParam(id: Int?): String = ModelsByCategory.route.replace(
+            "{${CATEGORY_ID}}",
+            id?.toString().orEmpty()
+        )
+    }
+
+    object Modules : Screen(route = "modules?$CATEGORY_ID={$CATEGORY_ID}", 0, null) {
+        fun updateRouteWithParam(id: Int?): String = Modules.route.replace(
+            "{${CATEGORY_ID}}",
+            id?.toString().orEmpty()
+        )
+    }
+
+    companion object {
+        const val CATEGORY_ID = "categoryId"
     }
 }
 
@@ -63,6 +75,7 @@ class AssetParamType : NavType<Animal>(isNullableAllowed = false) {
 fun NavigationGraph(
     navController: NavHostController,
     modifier: Modifier,
+    updateTopBar: (TopBarContent) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -70,36 +83,65 @@ fun NavigationGraph(
         modifier = modifier
     ) {
         composable(route = Screen.Home.route) {
-            CategoriesScreen()
+            updateTopBar(
+                TopBarContent(
+                    title = "ArStudy",
+                    actionClick = {
+                        // todo implement
+                    }
+                )
+            )
+            CategoriesScreen(navController = navController)
         }
-        composable(
-            route = Screen.Profile.route,
-//            arguments = listOf(
-//                navArgument("animal") {
-//                    type = AssetParamType()
-//                }
-//            )
-        ) { entry ->
+        composable(route = Screen.Profile.route) {
+            updateTopBar(TopBarContent(title = stringResource(id = R.string.home_home)))
             Empty()
         }
         composable(route = Screen.Search.route) {
-            SearchScreen(navHostController = navController
-//                openModels = {
-//                navController.navigate(Screen.Models.route)
-//                {
-//                    popUpTo(navController.graph.findStartDestination().id)
-//                    launchSingleTop = true
-//                }
-//            }
-            )
+            updateTopBar(TopBarContent(title = stringResource(id = R.string.home_search)))
+            SearchScreen(navHostController = navController)
         }
         composable(
-            route = Screen.Models.route,
-//            arguments = listOf(navArgument("category_id") {
-//                type = NavType.IntType
-//            })
+            route = Screen.ModelsByCategory.route,
+            arguments = listOf(navArgument(CATEGORY_ID) {
+                type = NavType.StringType
+                nullable = true
+            })
         ) { entry ->
-            ModelsScreen(categoryId = 3)//  entry.arguments?.getInt("category_id") ?: 0)
+            updateTopBar(
+                TopBarContent(
+                    title = "By category",
+                    mainFlow = false,
+                    navigationClick = {
+                        navController.popBackStack()
+                    }
+                )
+            )
+            ModelsScreen(categoryId = entry.arguments?.getString(CATEGORY_ID)?.toIntOrNull())
+        }
+        composable(
+            route = Screen.Modules.route
+        ) { entry ->
+            updateTopBar(
+                TopBarContent(
+                    title = "Modules",
+                    mainFlow = false,
+                    navigationClick = {
+                        navController.popBackStack()
+                    }
+                )
+            )
+            ModulesScreen(
+                navController = navController,
+                categoryId = entry.arguments?.getString(CATEGORY_ID)?.toIntOrNull() ?: 0
+            )
         }
     }
 }
+
+data class TopBarContent(
+    val title: String = "ArStudy",
+    val mainFlow: Boolean = true,
+    val navigationClick: (() -> Unit)? = null,
+    val actionClick: (() -> Unit)? = null
+)

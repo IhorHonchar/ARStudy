@@ -3,10 +3,13 @@ package ua.com.honchar.arstudy.navigation
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationDefaults
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -22,7 +25,7 @@ fun AppBottomBar(navController: NavHostController) {
         Screen.Search,
         Screen.Profile
     )
-    BottomNavigation {
+    BottomNavigation(backgroundColor = MaterialTheme.colorScheme.surface,) {
         screens.forEach { screen ->
             AddItem(
                 screen = screen,
@@ -50,6 +53,8 @@ fun RowScope.AddItem(
                 )
             }
         },
+        selectedContentColor = Color.Blue,
+        unselectedContentColor = MaterialTheme.colorScheme.onSurface,
         selected = screen.route == backStackEntry.value?.destination?.route,
         onClick = {
             navController.navigate(screen.route) {

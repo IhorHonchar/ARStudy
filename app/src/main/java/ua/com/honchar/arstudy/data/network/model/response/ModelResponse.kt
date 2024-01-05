@@ -8,5 +8,9 @@ data class ModelResponse(
     @SerializedName("name")
     val name: String?,
     @SerializedName("modelPath")
-    val modelPath: String?
+    val modelPath: String?,
+    @SerializedName("categoryId")
+    val categoryId: Int?,
+    @SerializedName("categoryName")
+    val categoryName: String?
 )

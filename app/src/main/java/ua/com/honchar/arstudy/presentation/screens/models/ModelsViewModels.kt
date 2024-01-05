@@ -1,4 +1,4 @@
-package ua.com.honchar.arstudy.presentation.screens.search
+package ua.com.honchar.arstudy.presentation.screens.models
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,13 +20,14 @@ class ModelsViewModels @Inject constructor(
     var state by mutableStateOf(ModelsState())
         private set
 
-    fun getModels(categoryId: Int) {
+    fun getModels(categoryId: Int?) {
         viewModelScope.launch {
             state = state.copy(
                 isLoading = true,
                 error = null
             )
-            when (val resource = repository.getModelsByCategory(categoryId)) {
+            val langId = 1 // todo temporary solution
+            when (val resource = repository.getModelsByCategory(categoryId, langId)) {
                 is Resource.Success -> {
                     state = state.copy(
                         data = resource.data,

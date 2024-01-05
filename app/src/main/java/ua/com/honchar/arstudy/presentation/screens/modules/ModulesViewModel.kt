@@ -1,4 +1,4 @@
-package ua.com.honchar.arstudy.presentation.screens.search
+package ua.com.honchar.arstudy.presentation.screens.modules
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -8,37 +8,34 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ua.com.honchar.arstudy.domain.repository.ArStudyRepository
-import ua.com.honchar.arstudy.domain.repository.model.Category
+import ua.com.honchar.arstudy.domain.repository.model.Module
 import ua.com.honchar.arstudy.util.Resource
 import javax.inject.Inject
 
 @HiltViewModel
-class SearchViewModel @Inject constructor(
+class ModulesViewModel @Inject constructor(
     private val repository: ArStudyRepository
-) : ViewModel() {
+): ViewModel() {
 
-    var state by mutableStateOf(SearchState())
+    var state by mutableStateOf(ModulesState())
         private set
 
-    init {
-        getCategories()
-    }
-
-    private fun getCategories() {
+    fun getModules(categoryId: Int) {
         viewModelScope.launch {
             state = state.copy(
                 isLoading = true,
                 error = null
             )
             val langId = 1 // todo temporary solution
-            when(val resource = repository.getCategories(langId)) {
+            when (val resource = repository.getModulesByCategory(categoryId, langId)) {
                 is Resource.Success -> {
                     state = state.copy(
-                        data = resource.data?.sortedBy { it.order },
+                        data = resource.data,
                         isLoading = false,
                         error = null
                     )
                 }
+
                 is Resource.Error -> {
                     state = state.copy(
                         data = null,
@@ -51,8 +48,8 @@ class SearchViewModel @Inject constructor(
     }
 }
 
-data class SearchState(
-    val data: List<Category>? = null,
+data class ModulesState(
+    val data: List<Module>? = null,
     val isLoading: Boolean = false,
     val error: String? = null
 )

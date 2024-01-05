@@ -19,6 +19,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Text
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,9 +30,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import ua.com.honchar.arstudy.R
 import ua.com.honchar.arstudy.domain.repository.model.Category
+import ua.com.honchar.arstudy.navigation.Screen
 import ua.com.honchar.arstudy.navigation.lerp
 import ua.com.honchar.arstudy.presentation.screens.BaseScreen
 import ua.com.honchar.arstudy.ui.theme.ARStudyTheme
@@ -39,18 +43,19 @@ import kotlin.math.absoluteValue
 
 @Composable
 fun CategoriesScreen(
-    viewModel: CategoriesViewModel = hiltViewModel()
+    viewModel: CategoriesViewModel = hiltViewModel(),
+    navController: NavHostController
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.getCategories()
-    }
-
     BaseScreen(
         error = viewModel.state.error,
         isLoading = viewModel.state.isLoading
     ) {
         CategoriesContent(
             categories = viewModel.state.data,
+            categoryClick = {
+                val routeWithData = Screen.Modules.updateRouteWithParam(it)
+                navController.navigate(routeWithData)
+            }
         )
     }
 }
@@ -59,28 +64,11 @@ fun CategoriesScreen(
 @Composable
 fun CategoriesContent(
     categories: List<Category>?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    categoryClick: (Int?) -> Unit
 ) {
     Surface {
         Box(modifier = modifier.fillMaxSize()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = "ArStudy",
-                    style = Typography.headlineLarge,
-                    modifier = Modifier.weight(1f)
-                )
-                Icon(
-                    imageVector = Icons.Filled.Settings,
-                    contentDescription = "settings",
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .size(32.dp)
-                )
-            }
             val pagerState = rememberPagerState {
                 categories?.size ?: 3
             }
@@ -108,6 +96,9 @@ fun CategoriesContent(
                                 fraction = 1f - pageOffset.coerceIn(0f, 1f)
                             ).dp
                         ),
+                        categoryClick = {
+                            categoryClick(it.id)
+                        }
                     )
                 }
             }
@@ -120,14 +111,17 @@ fun PagerState.calculateCurrentOffsetForPage(page: Int): Float {
     return ((currentPage - page) + currentPageOffsetFraction).absoluteValue
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryCard(
     category: Category,
     modifier: Modifier = Modifier,
     imageModifier: Modifier = Modifier,
+    categoryClick: () -> Unit
 ) {
     Box {
         Card(
+            onClick = categoryClick,
             modifier = modifier
                 .padding(top = 50.dp)
                 .width(250.dp)
@@ -136,6 +130,7 @@ fun CategoryCard(
                 Text(
                     text = category.name,
                     style = Typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(start = 16.dp, bottom = 16.dp),
@@ -146,6 +141,7 @@ fun CategoryCard(
             model = category.imagePath,
             contentDescription = null,
             placeholder = painterResource(id = R.drawable.ic_category),
+            error = painterResource(id = R.drawable.ic_category),
             modifier = imageModifier
                 .size(150.dp)
                 .align(Alignment.TopCenter)
@@ -181,6 +177,7 @@ private fun CategoriesPreview() {
     ARStudyTheme {
         CategoriesContent(
             categories = previewCategories,
+            categoryClick = {}
         )
     }
 }
