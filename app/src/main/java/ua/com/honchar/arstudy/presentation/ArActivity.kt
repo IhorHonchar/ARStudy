@@ -36,212 +36,204 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.ar.core.Config
-import com.google.ar.core.Frame
 import com.google.ar.core.Plane
-import com.google.ar.core.TrackingFailureReason
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.sceneview.ar.ARScene
 import io.github.sceneview.ar.arcore.getUpdatedPlanes
 import io.github.sceneview.ar.node.AnchorNode
 import io.github.sceneview.math.Position
-import io.github.sceneview.model.Model
-import io.github.sceneview.model.ModelInstance
 import io.github.sceneview.node.ModelNode
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberModelLoader
 import io.github.sceneview.rememberNodes
 import kotlinx.coroutines.launch
-import ua.com.honchar.arstudy.presentation.Animal
 import ua.com.honchar.arstudy.R
-import ua.com.honchar.arstudy.extensions.parcelable
 import ua.com.honchar.arstudy.ui.theme.ARStudyTheme
-import java.util.Locale
 
 @AndroidEntryPoint
 class ArActivity : ComponentActivity() {
 
-    private lateinit var tts: TextToSpeech
+    private var tts: TextToSpeech? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val animal = intent.extras.parcelable<Animal>("animal")
+//        val animal = intent.extras.parcelable<Animal>("animal")
         val path = intent.extras?.getString("path").orEmpty()
-        tts = TextToSpeech(this) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                // Налаштуйте мову, виберіть українську
-                val result = tts.setLanguage(Locale("uk_UA"))
-                if (result == TextToSpeech.LANG_MISSING_DATA ||
-                    result == TextToSpeech.LANG_NOT_SUPPORTED
-                ) {
-                    // Мову не підтримується, робіть відповідні дії
-                } else {
-                    tts.speak(
-                        animal?.info,
-                        TextToSpeech.QUEUE_FLUSH,
-                        null,
-                        "lang"
-                    )
-                    // TextToSpeech готовий до використання української мови
-                }
-            } else {
-                // Помилка ініціалізації TextToSpeech
-            }
-        }
+//        tts = TextToSpeech(this) { status ->
+//            if (status == TextToSpeech.SUCCESS) {
+//                // Налаштуйте мову, виберіть українську
+//                val result = tts.setLanguage(Locale("uk_UA"))
+//                if (result == TextToSpeech.LANG_MISSING_DATA ||
+//                    result == TextToSpeech.LANG_NOT_SUPPORTED
+//                ) {
+//                    // Мову не підтримується, робіть відповідні дії
+//                } else {
+//                    tts.speak(
+//                        animal?.info,
+//                        TextToSpeech.QUEUE_FLUSH,
+//                        null,
+//                        "lang"
+//                    )
+//                    // TextToSpeech готовий до використання української мови
+//                }
+//            } else {
+//                // Помилка ініціалізації TextToSpeech
+//            }
+//        }
         setContent {
             ARStudyTheme {
-                ARAnimalScreen(animal, path)
+                ARAnimalScreen(path)
             }
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        tts.stop()
-        tts.shutdown()
+        tts?.stop()
+        tts?.shutdown()
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ARAnimalScreen(animal: Animal?, path: String, viewModel: MainViewModel = hiltViewModel()) {
+fun ARAnimalScreen(path: String, viewModel: MainViewModel = hiltViewModel()) {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
-    if (animal != null) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            var isLoading by remember { mutableStateOf(true) }
-            var planeRenderer by remember { mutableStateOf(true) }
-            val engine = rememberEngine()
-            val modelLoader = rememberModelLoader(engine)
-            val childNodes = rememberNodes()
-            val coroutineScope = rememberCoroutineScope()
+//    if (animal != null) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        var isLoading by remember { mutableStateOf(true) }
+        var planeRenderer by remember { mutableStateOf(true) }
+        val engine = rememberEngine()
+        val modelLoader = rememberModelLoader(engine)
+        val childNodes = rememberNodes()
+        val coroutineScope = rememberCoroutineScope()
 
-            val context = LocalContext.current
-            ARScene(
-                modifier = Modifier.fillMaxSize(),
-                childNodes = childNodes,
-                engine = engine,
-                modelLoader = modelLoader,
-                planeRenderer = planeRenderer,
-                sessionConfiguration = { session, config ->
-                    config.depthMode =
-                        when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
-                            true -> Config.DepthMode.AUTOMATIC
-                            else -> Config.DepthMode.DISABLED
-                        }
-                    config.instantPlacementMode = Config.InstantPlacementMode.DISABLED
-                    config.lightEstimationMode =
-                        Config.LightEstimationMode.ENVIRONMENTAL_HDR
-                },
-                onSessionUpdated = { _, frame ->
-                    if (childNodes.isNotEmpty()) return@ARScene
+        val context = LocalContext.current
+        ARScene(
+            modifier = Modifier.fillMaxSize(),
+            childNodes = childNodes,
+            engine = engine,
+            modelLoader = modelLoader,
+            planeRenderer = planeRenderer,
+            sessionConfiguration = { session, config ->
+                config.depthMode =
+                    when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
+                        true -> Config.DepthMode.AUTOMATIC
+                        else -> Config.DepthMode.DISABLED
+                    }
+                config.instantPlacementMode = Config.InstantPlacementMode.DISABLED
+                config.lightEstimationMode =
+                    Config.LightEstimationMode.ENVIRONMENTAL_HDR
+            },
+            onSessionUpdated = { _, frame ->
+                if (childNodes.isNotEmpty()) return@ARScene
 
-                    frame.getUpdatedPlanes()
-                        .firstOrNull { it.type == Plane.Type.HORIZONTAL_UPWARD_FACING }
-                        ?.let { plane ->
-                            isLoading = true
-                            childNodes += AnchorNode(
-                                engine = engine,
-                                anchor = plane.createAnchor(plane.centerPose)
-                            ).apply {
-                                isEditable = true
-                                coroutineScope.launch {
-                                    modelLoader.loadModelInstance(animal.path)
-                                        ?.let {
-                                            addChildNode(
-                                                ModelNode(
-                                                    modelInstance = it,
-                                                    // Scale to fit in a 0.5 meters cube
-                                                    scaleToUnits = 0.5f,
-                                                    // Bottom origin instead of center so the
-                                                    // model base is on floor
-                                                    centerOrigin = Position(y = -0.5f)
-                                                ).apply {
-                                                    isEditable = true
-                                                }
-                                            )
-                                        }
-                                    planeRenderer = false
-                                    isLoading = false
-                                }
+                frame.getUpdatedPlanes()
+                    .firstOrNull { it.type == Plane.Type.HORIZONTAL_UPWARD_FACING }
+                    ?.let { plane ->
+                        isLoading = true
+                        childNodes += AnchorNode(
+                            engine = engine,
+                            anchor = plane.createAnchor(plane.centerPose)
+                        ).apply {
+                            isEditable = true
+                            coroutineScope.launch {
+                                modelLoader.loadModelInstance(path)
+                                    ?.let {
+                                        addChildNode(
+                                            ModelNode(
+                                                modelInstance = it,
+                                                // Scale to fit in a 0.5 meters cube
+                                                scaleToUnits = 2.5f,
+                                                // Bottom origin instead of center so the
+                                                // model base is on floor
+                                                centerOrigin = Position(y = -0.5f)
+                                            ).apply {
+                                                isEditable = true
+                                            }
+                                        )
+                                    }
+                                planeRenderer = false
+                                isLoading = false
                             }
                         }
-                }
+                    }
+            }
+        )
+        if (isLoading) {
+            Text(
+                text = "Loading...",
+                modifier = Modifier.align(Alignment.Center),
+                fontSize = 28.sp
             )
-            if (isLoading) {
+        }
+        Button(
+            onClick = { showBottomSheet = true },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            Row {
+                Image(
+                    painter = painterResource(id = R.drawable.text),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(30.dp)
+                        .align(Alignment.CenterVertically)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Loading...",
-                    modifier = Modifier.align(Alignment.Center),
-                    fontSize = 28.sp
+                    text = "Показати інфо",
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }
-            Button(
-                onClick = { showBottomSheet = true },
-                modifier = Modifier.align(Alignment.BottomCenter)
+        }
+
+        Image(
+            painter = painterResource(id = R.drawable.ic_volume_up),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(30.dp)
+        )
+
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    showBottomSheet = false
+                },
+                sheetState = sheetState
             ) {
-                Row {
-                    Image(
-                        painter = painterResource(id = R.drawable.text),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(30.dp)
-                            .align(Alignment.CenterVertically)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Показати інфо",
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                }
-            }
-
-            Image(
-                painter = painterResource(id = R.drawable.ic_volume_up),
-                contentDescription = null,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(30.dp)
-            )
-
-            if (showBottomSheet) {
-                ModalBottomSheet(
-                    onDismissRequest = {
-                        showBottomSheet = false
-                    },
-                    sheetState = sheetState
-                ) {
-                    LazyColumn {
-                        item {
-                            Text(
-                                text = animal.info,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-                        }
-                        item {
-                            Spacer(modifier = Modifier.height(30.dp))
-                        }
-                        item {
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                Button(
-                                    onClick = {
-                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                            if (!sheetState.isVisible) {
-                                                showBottomSheet = false
-                                            }
+                LazyColumn {
+                    item {
+//                            Text(
+//                                text = animal.info,
+//                                modifier = Modifier.padding(horizontal = 16.dp)
+//                            )
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(30.dp))
+                    }
+                    item {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Button(
+                                onClick = {
+                                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        if (!sheetState.isVisible) {
+                                            showBottomSheet = false
                                         }
-                                    },
-                                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                                ) {
-                                    Text("Сховати інфо")
-                                }
+                                    }
+                                },
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            ) {
+                                Text("Сховати інфо")
                             }
                         }
-                        item {
-                            Spacer(modifier = Modifier.height(30.dp))
-                        }
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(30.dp))
                     }
                 }
             }
@@ -269,6 +261,6 @@ private fun Preview() {
                 "Самці помітно більші за самиць, і мають більшу територію. Також виразні розмірні розбіжності спостерігаються між дев'ятьма підвидами цього виду, що збереглися до історичних часів."
     )
     ARStudyTheme {
-        ARAnimalScreen(tiger, "")
+        ARAnimalScreen("")
     }
 }

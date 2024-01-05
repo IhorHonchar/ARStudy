@@ -4,6 +4,7 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -179,7 +180,7 @@ private fun CustomPopupContent(
         this.transformOrigin = transformOrigin
     }
 
-    Surface(
+    Box(
         modifier = Modifier
             .graphicsLayer {
                 graphicsLayerAnim()

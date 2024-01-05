@@ -19,10 +19,10 @@ import ua.com.honchar.arstudy.R
 import ua.com.honchar.arstudy.extensions.parcelable
 import ua.com.honchar.arstudy.navigation.Screen.Companion.CATEGORY_ID
 import ua.com.honchar.arstudy.presentation.Animal
-import ua.com.honchar.arstudy.presentation.screens.Empty
 import ua.com.honchar.arstudy.presentation.screens.categories.CategoriesScreen
 import ua.com.honchar.arstudy.presentation.screens.models.ModelsScreen
 import ua.com.honchar.arstudy.presentation.screens.modules.ModulesScreen
+import ua.com.honchar.arstudy.presentation.screens.profile.ProfileScreen
 import ua.com.honchar.arstudy.presentation.screens.search.SearchScreen
 
 sealed class Screen(
@@ -95,7 +95,7 @@ fun NavigationGraph(
         }
         composable(route = Screen.Profile.route) {
             updateTopBar(TopBarContent(title = stringResource(id = R.string.home_home)))
-            Empty()
+            ProfileScreen()
         }
         composable(route = Screen.Search.route) {
             updateTopBar(TopBarContent(title = stringResource(id = R.string.home_search)))
