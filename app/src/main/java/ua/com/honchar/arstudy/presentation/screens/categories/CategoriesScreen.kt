@@ -2,11 +2,11 @@ package ua.com.honchar.arstudy.presentation.screens.categories
 
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,18 +14,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Text
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,57 +50,32 @@ fun CategoriesScreen(
         CategoriesContent(
             categories = viewModel.state.data,
             categoryClick = {
-                val routeWithData = Screen.Modules.updateRouteWithParam(it)
+                val routeWithData = Screen.Modules.updateWithParam(it, Screen.CATEGORY_ID)
                 navController.navigate(routeWithData)
             }
         )
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CategoriesContent(
     categories: List<Category>?,
-    modifier: Modifier = Modifier,
     categoryClick: (Int?) -> Unit
 ) {
-    Surface {
-        Box(modifier = modifier.fillMaxSize()) {
-            val pagerState = rememberPagerState {
-                categories?.size ?: 3
-            }
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(end = 50.dp, start = 30.dp)
-            ) { page ->
-                val pageOffset = pagerState.calculateCurrentOffsetForPage(page)
-                categories?.get(page)?.let {
-                    CategoryCard(
-                        category = it,
-                        modifier = Modifier
-                            .height(
-                                lerp(
-                                    start = 280.dp.value,
-                                    stop = 330.dp.value,
-                                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                                ).dp
-                            ),
-                        imageModifier = Modifier.padding(
-                            top = lerp(
-                                start = 50.dp.value,
-                                stop = 0f,
-                                fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                            ).dp
-                        ),
-                        categoryClick = {
-                            categoryClick(it.id)
-                        }
-                    )
+    CardsPager(
+        list = categories.orEmpty(),
+        content = { _, item: Category, cardModifier: Modifier, imageModifier: Modifier ->
+            ItemCard(
+                text = item.name,
+                imagePath = item.imagePath,
+                modifier = cardModifier,
+                imageModifier = imageModifier,
+                categoryClick = {
+                    categoryClick(item.id)
                 }
-            }
+            )
         }
-    }
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -111,12 +83,53 @@ fun PagerState.calculateCurrentOffsetForPage(page: Int): Float {
     return ((currentPage - page) + currentPageOffsetFraction).absoluteValue
 }
 
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun <T> CardsPager(
+    list: List<T>,
+    content: @Composable (pageOffset: Float, item: T, cardModifier: Modifier, imageModifier: Modifier) -> Unit
+) {
+    Surface {
+        Box(modifier = Modifier.fillMaxSize()) {
+            val pagerState = rememberPagerState { list.size }
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(end = 50.dp, start = 30.dp)
+            ) { page ->
+                val pageOffset = pagerState.calculateCurrentOffsetForPage(page)
+                val item = list[page]
+                val cardModifier = Modifier
+                    .height(
+                        lerp(
+                            start = 280.dp.value,
+                            stop = 330.dp.value,
+                            fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                        ).dp
+                    )
+                val imageModifier = Modifier.padding(
+                    top = lerp(
+                        start = 50.dp.value,
+                        stop = 0f,
+                        fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                    ).dp
+                )
+                content(pageOffset, item, cardModifier, imageModifier)
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryCard(
-    category: Category,
+fun ItemCard(
+    text: String,
     modifier: Modifier = Modifier,
     imageModifier: Modifier = Modifier,
+    imagePath: String? = null,
+    image: Int? = null,
+    optionalCardContent: @Composable BoxScope.() -> Unit = {},
     categoryClick: () -> Unit
 ) {
     Box {
@@ -127,8 +140,9 @@ fun CategoryCard(
                 .width(250.dp)
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
+                optionalCardContent.invoke(this)
                 Text(
-                    text = category.name,
+                    text = text,
                     style = Typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
@@ -137,15 +151,26 @@ fun CategoryCard(
                 )
             }
         }
-        AsyncImage(
-            model = category.imagePath,
-            contentDescription = null,
-            placeholder = painterResource(id = R.drawable.ic_category),
-            error = painterResource(id = R.drawable.ic_category),
-            modifier = imageModifier
-                .size(150.dp)
-                .align(Alignment.TopCenter)
-        )
+        imagePath?.let {
+            AsyncImage(
+                model = it,
+                contentDescription = null,
+                placeholder = painterResource(id = R.drawable.ic_category),
+                error = painterResource(id = R.drawable.ic_category),
+                modifier = imageModifier
+                    .size(150.dp)
+                    .align(Alignment.TopCenter)
+            )
+        } ?: image?.let {
+            Image(
+                painter = painterResource(id = it),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurface),
+                modifier = imageModifier
+                    .size(150.dp)
+                    .align(Alignment.TopCenter)
+            )
+        }
     }
 }
 

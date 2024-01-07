@@ -4,10 +4,15 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class Model(
+data class Lesson(
     val id: Int,
     val name: String,
-    val modelPath: String,
-    val categoryId: Int?,
-    val categoryName: String?
+    val lessonParts: List<LessonPart>,
+): Parcelable
+
+@Parcelize
+data class LessonPart(
+    val id: Int,
+    val text: String,
+    val model: Model?
 ): Parcelable

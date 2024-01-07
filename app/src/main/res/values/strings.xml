@@ -4,4 +4,7 @@
     <string name="home_search">Search</string>
     <string name="home_profile">Profile</string>
     <string name="all_models">All models</string>
+    <string name="by_category">By category</string>
+    <string name="unit_screen">Unit</string>
+    <string name="lessons_screen">Lessons</string>
 </resources>

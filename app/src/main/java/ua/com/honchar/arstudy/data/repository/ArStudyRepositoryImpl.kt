@@ -2,10 +2,12 @@ package ua.com.honchar.arstudy.data.repository
 
 import ua.com.honchar.arstudy.data.mappers.toDomain
 import ua.com.honchar.arstudy.data.network.ArStudyApi
+import ua.com.honchar.arstudy.data.network.lesson.request.LessonsRequest
 import ua.com.honchar.arstudy.data.network.model.request.ModelsRequest
 import ua.com.honchar.arstudy.data.network.module.request.ModulesRequest
 import ua.com.honchar.arstudy.domain.repository.ArStudyRepository
 import ua.com.honchar.arstudy.domain.repository.model.Category
+import ua.com.honchar.arstudy.domain.repository.model.Lesson
 import ua.com.honchar.arstudy.domain.repository.model.Model
 import ua.com.honchar.arstudy.domain.repository.model.Module
 import ua.com.honchar.arstudy.util.Resource
@@ -37,6 +39,14 @@ class ArStudyRepositoryImpl @Inject constructor(
         return executeRequest {
             val requestData = ModulesRequest(categoryId, langId)
             val response = api.getModulesByCategory(requestData)
+            response.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun getModuleLessons(moduleId: Int, langId: Int?): Resource<List<Lesson>> {
+        return executeRequest {
+            val request = LessonsRequest(moduleId, langId)
+            val response = api.getModuleLessons(request)
             response.map { it.toDomain() }
         }
     }

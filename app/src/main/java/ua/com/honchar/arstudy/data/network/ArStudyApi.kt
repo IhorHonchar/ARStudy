@@ -5,6 +5,8 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import ua.com.honchar.arstudy.data.network.categories.response.CategoriesResponse
+import ua.com.honchar.arstudy.data.network.lesson.request.LessonsRequest
+import ua.com.honchar.arstudy.data.network.lesson.response.LessonResponse
 import ua.com.honchar.arstudy.data.network.model.request.ModelsRequest
 import ua.com.honchar.arstudy.data.network.model.response.ModelResponse
 import ua.com.honchar.arstudy.data.network.module.request.ModulesRequest
@@ -20,6 +22,9 @@ interface ArStudyApi {
 
     @POST("/modules")
     suspend fun getModulesByCategory(@Body request: ModulesRequest): List<ModuleResponse>
+
+    @POST("/lessons")
+    suspend fun getModuleLessons(@Body request: LessonsRequest): List<LessonResponse>
 
     companion object {
         const val BASE_URL = "http://192.168.0.103:8080"

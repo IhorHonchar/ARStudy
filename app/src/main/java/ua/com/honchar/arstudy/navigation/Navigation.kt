@@ -18,8 +18,10 @@ import com.google.gson.Gson
 import ua.com.honchar.arstudy.R
 import ua.com.honchar.arstudy.extensions.parcelable
 import ua.com.honchar.arstudy.navigation.Screen.Companion.CATEGORY_ID
+import ua.com.honchar.arstudy.navigation.Screen.Companion.MODULE_ID
 import ua.com.honchar.arstudy.presentation.Animal
 import ua.com.honchar.arstudy.presentation.screens.categories.CategoriesScreen
+import ua.com.honchar.arstudy.presentation.screens.lessons.LessonsScreen
 import ua.com.honchar.arstudy.presentation.screens.models.ModelsScreen
 import ua.com.honchar.arstudy.presentation.screens.modules.ModulesScreen
 import ua.com.honchar.arstudy.presentation.screens.profile.ProfileScreen
@@ -37,23 +39,18 @@ sealed class Screen(
     object Profile : Screen(route = "profile", R.string.home_profile, Icons.Outlined.Person)
 
 
-    object ModelsByCategory :
-        Screen(route = "modelsByCategory?$CATEGORY_ID={$CATEGORY_ID}", 0, null) {
-        fun updateRouteWithParam(id: Int?): String = ModelsByCategory.route.replace(
-            "{${CATEGORY_ID}}",
-            id?.toString().orEmpty()
-        )
-    }
+    object ModelsByCategory : Screen(route = "modelsByCategory?$CATEGORY_ID={$CATEGORY_ID}", 0, null)
+    object Modules : Screen(route = "modules?$CATEGORY_ID={$CATEGORY_ID}", 0, null)
+    object Lessons: Screen(route = "lessons?$MODULE_ID={$MODULE_ID}", 0, null)
 
-    object Modules : Screen(route = "modules?$CATEGORY_ID={$CATEGORY_ID}", 0, null) {
-        fun updateRouteWithParam(id: Int?): String = Modules.route.replace(
-            "{${CATEGORY_ID}}",
-            id?.toString().orEmpty()
-        )
-    }
+    fun updateWithParam(value: Any?, paramName: String): String = route.replace(
+        "{$paramName}",
+        value?.toString().orEmpty()
+    )
 
     companion object {
         const val CATEGORY_ID = "categoryId"
+        const val MODULE_ID = "module_id"
     }
 }
 
@@ -110,7 +107,7 @@ fun NavigationGraph(
         ) { entry ->
             updateTopBar(
                 TopBarContent(
-                    title = "By category",
+                    title = stringResource(id = R.string.by_category),
                     mainFlow = false,
                     navigationClick = {
                         navController.popBackStack()
@@ -119,12 +116,10 @@ fun NavigationGraph(
             )
             ModelsScreen(categoryId = entry.arguments?.getString(CATEGORY_ID)?.toIntOrNull())
         }
-        composable(
-            route = Screen.Modules.route
-        ) { entry ->
+        composable(route = Screen.Modules.route) { entry ->
             updateTopBar(
                 TopBarContent(
-                    title = "Modules",
+                    title = stringResource(id = R.string.unit_screen),
                     mainFlow = false,
                     navigationClick = {
                         navController.popBackStack()
@@ -135,6 +130,18 @@ fun NavigationGraph(
                 navController = navController,
                 categoryId = entry.arguments?.getString(CATEGORY_ID)?.toIntOrNull() ?: 0
             )
+        }
+        composable(route = Screen.Lessons.route) { entry ->
+            updateTopBar(
+                TopBarContent(
+                    title = stringResource(id = R.string.lessons_screen),
+                    mainFlow = false,
+                    navigationClick = {
+                        navController.popBackStack()
+                    }
+                )
+            )
+            LessonsScreen(moduleId = entry.arguments?.getString(MODULE_ID)?.toIntOrNull())
         }
     }
 }

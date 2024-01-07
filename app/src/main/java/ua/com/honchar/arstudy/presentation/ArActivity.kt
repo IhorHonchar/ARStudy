@@ -48,6 +48,8 @@ import io.github.sceneview.rememberModelLoader
 import io.github.sceneview.rememberNodes
 import kotlinx.coroutines.launch
 import ua.com.honchar.arstudy.R
+import ua.com.honchar.arstudy.domain.repository.model.LessonPart
+import ua.com.honchar.arstudy.extensions.parcelable
 import ua.com.honchar.arstudy.ui.theme.ARStudyTheme
 
 @AndroidEntryPoint
@@ -57,8 +59,8 @@ class ArActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        val animal = intent.extras.parcelable<Animal>("animal")
-        val path = intent.extras?.getString("path").orEmpty()
+        val lessonPart = intent.extras.parcelable<LessonPart>(MODEL)
+        val path = intent.extras?.getString(JUST_PATH).orEmpty()
 //        tts = TextToSpeech(this) { status ->
 //            if (status == TextToSpeech.SUCCESS) {
 //                // Налаштуйте мову, виберіть українську
@@ -82,7 +84,7 @@ class ArActivity : ComponentActivity() {
 //        }
         setContent {
             ARStudyTheme {
-                ARAnimalScreen(path)
+                ARAnimalScreen(lessonPart, path)
             }
         }
     }
@@ -92,148 +94,152 @@ class ArActivity : ComponentActivity() {
         tts?.stop()
         tts?.shutdown()
     }
+
+    companion object {
+        const val MODEL = "model"
+        const val JUST_PATH = "just_path"
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ARAnimalScreen(path: String, viewModel: MainViewModel = hiltViewModel()) {
+fun ARAnimalScreen(lessonPart: LessonPart?, path: String, viewModel: MainViewModel = hiltViewModel()) {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
-//    if (animal != null) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        var isLoading by remember { mutableStateOf(true) }
-        var planeRenderer by remember { mutableStateOf(true) }
-        val engine = rememberEngine()
-        val modelLoader = rememberModelLoader(engine)
-        val childNodes = rememberNodes()
-        val coroutineScope = rememberCoroutineScope()
-
-        val context = LocalContext.current
-        ARScene(
-            modifier = Modifier.fillMaxSize(),
-            childNodes = childNodes,
-            engine = engine,
-            modelLoader = modelLoader,
-            planeRenderer = planeRenderer,
-            sessionConfiguration = { session, config ->
-                config.depthMode =
-                    when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
-                        true -> Config.DepthMode.AUTOMATIC
-                        else -> Config.DepthMode.DISABLED
-                    }
-                config.instantPlacementMode = Config.InstantPlacementMode.DISABLED
-                config.lightEstimationMode =
-                    Config.LightEstimationMode.ENVIRONMENTAL_HDR
-            },
-            onSessionUpdated = { _, frame ->
-                if (childNodes.isNotEmpty()) return@ARScene
-
-                frame.getUpdatedPlanes()
-                    .firstOrNull { it.type == Plane.Type.HORIZONTAL_UPWARD_FACING }
-                    ?.let { plane ->
-                        isLoading = true
-                        childNodes += AnchorNode(
-                            engine = engine,
-                            anchor = plane.createAnchor(plane.centerPose)
-                        ).apply {
-                            isEditable = true
-                            coroutineScope.launch {
-                                modelLoader.loadModelInstance(path)
-                                    ?.let {
-                                        addChildNode(
-                                            ModelNode(
-                                                modelInstance = it,
-                                                // Scale to fit in a 0.5 meters cube
-                                                scaleToUnits = 2.5f,
-                                                // Bottom origin instead of center so the
-                                                // model base is on floor
-                                                centerOrigin = Position(y = -0.5f)
-                                            ).apply {
-                                                isEditable = true
-                                            }
-                                        )
-                                    }
-                                planeRenderer = false
-                                isLoading = false
-                            }
-                        }
-                    }
-            }
-        )
-        if (isLoading) {
-            Text(
-                text = "Loading...",
-                modifier = Modifier.align(Alignment.Center),
-                fontSize = 28.sp
-            )
-        }
-        Button(
-            onClick = { showBottomSheet = true },
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) {
-            Row {
-                Image(
-                    painter = painterResource(id = R.drawable.text),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(30.dp)
-                        .align(Alignment.CenterVertically)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "Показати інфо",
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
-            }
-        }
-
-        Image(
-            painter = painterResource(id = R.drawable.ic_volume_up),
-            contentDescription = null,
+    if (lessonPart != null) {
+        Box(
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(30.dp)
-        )
+                .fillMaxSize()
+        ) {
+            var isLoading by remember { mutableStateOf(true) }
+            var planeRenderer by remember { mutableStateOf(true) }
+            val engine = rememberEngine()
+            val modelLoader = rememberModelLoader(engine)
+            val childNodes = rememberNodes()
+            val coroutineScope = rememberCoroutineScope()
 
-        if (showBottomSheet) {
-            ModalBottomSheet(
-                onDismissRequest = {
-                    showBottomSheet = false
+            val context = LocalContext.current
+            ARScene(
+                modifier = Modifier.fillMaxSize(),
+                childNodes = childNodes,
+                engine = engine,
+                modelLoader = modelLoader,
+                planeRenderer = planeRenderer,
+                sessionConfiguration = { session, config ->
+                    config.depthMode =
+                        when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
+                            true -> Config.DepthMode.AUTOMATIC
+                            else -> Config.DepthMode.DISABLED
+                        }
+                    config.instantPlacementMode = Config.InstantPlacementMode.DISABLED
+                    config.lightEstimationMode =
+                        Config.LightEstimationMode.ENVIRONMENTAL_HDR
                 },
-                sheetState = sheetState
-            ) {
-                LazyColumn {
-                    item {
-//                            Text(
-//                                text = animal.info,
-//                                modifier = Modifier.padding(horizontal = 16.dp)
-//                            )
-                    }
-                    item {
-                        Spacer(modifier = Modifier.height(30.dp))
-                    }
-                    item {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Button(
-                                onClick = {
-                                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                        if (!sheetState.isVisible) {
-                                            showBottomSheet = false
+                onSessionUpdated = { _, frame ->
+                    if (childNodes.isNotEmpty()) return@ARScene
+
+                    frame.getUpdatedPlanes()
+                        .firstOrNull { it.type == Plane.Type.HORIZONTAL_UPWARD_FACING }
+                        ?.let { plane ->
+                            isLoading = true
+                            childNodes += AnchorNode(
+                                engine = engine,
+                                anchor = plane.createAnchor(plane.centerPose)
+                            ).apply {
+                                isEditable = true
+                                coroutineScope.launch {
+                                    modelLoader.loadModelInstance(path)
+                                        ?.let {
+                                            addChildNode(
+                                                ModelNode(
+                                                    modelInstance = it,
+                                                    // Scale to fit in a 0.5 meters cube
+                                                    scaleToUnits = 2.5f,
+                                                    // Bottom origin instead of center so the
+                                                    // model base is on floor
+                                                    centerOrigin = Position(y = -0.5f)
+                                                ).apply {
+                                                    isEditable = true
+                                                }
+                                            )
                                         }
-                                    }
-                                },
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
-                            ) {
-                                Text("Сховати інфо")
+                                    planeRenderer = false
+                                    isLoading = false
+                                }
                             }
                         }
-                    }
-                    item {
-                        Spacer(modifier = Modifier.height(30.dp))
+                }
+            )
+            if (isLoading) {
+                Text(
+                    text = "Loading...",
+                    modifier = Modifier.align(Alignment.Center),
+                    fontSize = 28.sp
+                )
+            }
+            Button(
+                onClick = { showBottomSheet = true },
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                Row {
+                    Image(
+                        painter = painterResource(id = R.drawable.text),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(30.dp)
+                            .align(Alignment.CenterVertically)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Показати інфо",
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    )
+                }
+            }
+
+            Image(
+                painter = painterResource(id = R.drawable.ic_volume_up),
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(30.dp)
+            )
+
+            if (showBottomSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = { showBottomSheet = false },
+                    sheetState = sheetState
+                ) {
+                    LazyColumn {
+                        item {
+                            Text(
+                                text = lessonPart.text,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(30.dp))
+                        }
+                        item {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Button(
+                                    onClick = {
+                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                            if (!sheetState.isVisible) {
+                                                showBottomSheet = false
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                ) {
+                                    Text("Сховати інфо")
+                                }
+                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(30.dp))
+                        }
                     }
                 }
             }
