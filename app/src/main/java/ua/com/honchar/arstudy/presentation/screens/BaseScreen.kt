@@ -27,9 +27,7 @@ fun BaseScreen(
         Box(Modifier.padding(paddingValues)) {
             content()
             if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
         error?.let {

@@ -21,6 +21,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        resourceConfigurations += listOf("en", "uk")
     }
 
     buildTypes {
@@ -70,6 +71,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling")
     implementation("com.google.code.gson:gson:2.9.1")
     implementation("io.github.sceneview:arsceneview:1.2.5")
+    implementation ("androidx.appcompat:appcompat:1.7.0-alpha01")
 
     // Compose dependencies
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0-rc01")
@@ -88,6 +90,13 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    // Room
+    val room_version = "2.6.1"
+    implementation ("androidx.room:room-runtime:$room_version")
+    implementation("androidx.room:room-ktx:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$room_version")
+    kapt ("androidx.room:room-compiler:$room_version")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

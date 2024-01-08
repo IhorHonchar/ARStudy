@@ -9,5 +9,6 @@ data class Model(
     val name: String,
     val modelPath: String,
     val categoryId: Int?,
-    val categoryName: String?
+    val categoryName: String?,
+    val fileName: String
 ): Parcelable

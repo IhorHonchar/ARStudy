@@ -1,7 +1,6 @@
 package ua.com.honchar.arstudy.presentation.screens
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,13 +33,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ua.com.honchar.arstudy.presentation.Animal
 import ua.com.honchar.arstudy.presentation.ArActivity
-import ua.com.honchar.arstudy.presentation.MainViewModel
+import ua.com.honchar.arstudy.presentation.ArViewModel
 import ua.com.honchar.arstudy.presentation.getAnimals
 import ua.com.honchar.arstudy.ui.theme.ARStudyTheme
 
 @Composable
 fun AnimalsScreen(
-    viewModel: MainViewModel = hiltViewModel()
+    viewModel: ArViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val animals = getAnimals()

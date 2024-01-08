@@ -16,6 +16,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import ua.com.honchar.arstudy.preview.TwoThemePreview
 import ua.com.honchar.arstudy.ui.theme.ARStudyTheme
 
 @Composable
@@ -65,8 +66,7 @@ fun RowScope.AddItem(
     )
 }
 
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@TwoThemePreview
 @Composable
 private fun BottomBarPreview() {
     ARStudyTheme {

@@ -7,4 +7,14 @@
     <string name="by_category">By category</string>
     <string name="unit_screen">Unit</string>
     <string name="lessons_screen">Lessons</string>
+    <string name="settings">Settings</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="log_in">Log in</string>
+    <string name="sign_up">Sign up</string>
+    <string name="name">Name</string>
+    <string name="incorrect_email">Incorrect email</string>
+    <string name="confirm_exit_title">Confirm exit</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
 </resources>

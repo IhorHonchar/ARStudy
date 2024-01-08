@@ -12,5 +12,7 @@ data class ModelResponse(
     @SerializedName("categoryId")
     val categoryId: Int?,
     @SerializedName("categoryName")
-    val categoryName: String?
+    val categoryName: String?,
+    @SerializedName("fileName")
+    val fileName: String?
 )
