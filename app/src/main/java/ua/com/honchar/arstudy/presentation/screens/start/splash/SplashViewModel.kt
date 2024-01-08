@@ -1,5 +1,6 @@
 package ua.com.honchar.arstudy.presentation.screens.start.splash
 
+import android.content.res.Configuration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,15 +16,15 @@ import javax.inject.Inject
 @HiltViewModel
 class SplashViewModel @Inject constructor(
     private val repository: ArStudyRepository,
-): ViewModel() {
+) : ViewModel() {
 
     val openMain = MutableSharedFlow<Unit>()
     val openLogin = MutableSharedFlow<Unit>()
 
-    fun checkUserData() {
+    fun checkUserData(configuration: Configuration) {
         viewModelScope.launch {
             launch(Dispatchers.IO) {
-                downloadLanguages()
+                downloadLanguages(configuration)
                 val startTime = System.currentTimeMillis()
                 val userDataRes = repository.getUserDb()
 
@@ -41,10 +42,11 @@ class SplashViewModel @Inject constructor(
         }
     }
 
-    private suspend fun downloadLanguages() {
+    private suspend fun downloadLanguages(configuration: Configuration) {
+        val currentLang = configuration.locales[0].toLanguageTag()
         coroutineScope {
             launch(Dispatchers.IO + Job()) {
-                repository.getLanguages()
+                repository.getLanguages(currentLang)
             }
         }
     }

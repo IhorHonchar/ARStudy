@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
@@ -22,8 +23,9 @@ fun SplashScreen(
     navigateToLogIn: () -> Unit,
     viewModel: SplashViewModel = hiltViewModel()
 ) {
+    val configuration = LocalConfiguration.current
     Box {
-        viewModel.checkUserData()
+        viewModel.checkUserData(configuration)
         LaunchedEffect(key1 = Unit) {
             viewModel.openMain.collect {
                 navigateToMain.invoke()

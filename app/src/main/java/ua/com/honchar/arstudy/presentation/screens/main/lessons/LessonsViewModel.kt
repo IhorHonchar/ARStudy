@@ -38,7 +38,7 @@ class LessonsViewModel @Inject constructor(
                 isLoading = true,
                 error = null
             )
-            val langId = 1 // todo temporary solution
+            val langId = repository.getSavedLangId()
             moduleId?.let {
                 when (val resource = repository.getModuleLessons(moduleId, langId)) {
                     is Resource.Success -> {

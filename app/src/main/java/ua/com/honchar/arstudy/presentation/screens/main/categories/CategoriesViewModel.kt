@@ -20,17 +20,13 @@ class CategoriesViewModel @Inject constructor(
     var state by mutableStateOf(CategoriesState())
         private set
 
-    init {
-        getCategories()
-    }
-
-    private fun getCategories() {
+    fun getCategories() {
         viewModelScope.launch {
             state = state.copy(
                 isLoading = true,
                 error = null
             )
-            val langId = 1 // todo temporary solution
+            val langId = repository.getSavedLangId()
             when(val resource = repository.getCategories(langId)) {
                 is Resource.Success -> {
                     state = state.copy(

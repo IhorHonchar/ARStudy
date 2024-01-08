@@ -39,7 +39,7 @@ class ModelsViewModels @Inject constructor(
                 isLoading = true,
                 error = null
             )
-            val langId = 1 // todo temporary solution
+            val langId = repository.getSavedLangId()
             when (val resource = repository.getModelsByCategory(categoryId, langId)) {
                 is Resource.Success -> {
                     state = state.copy(

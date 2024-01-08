@@ -12,6 +12,7 @@ import ua.com.honchar.arstudy.data.network.lesson.request.LessonsRequest
 import ua.com.honchar.arstudy.data.network.model.request.ModelsRequest
 import ua.com.honchar.arstudy.data.network.module.request.ModulesRequest
 import ua.com.honchar.arstudy.data.network.user.request.UserRequest
+import ua.com.honchar.arstudy.data.sharedPref.SharedPref
 import ua.com.honchar.arstudy.domain.repository.ArStudyRepository
 import ua.com.honchar.arstudy.domain.repository.model.Category
 import ua.com.honchar.arstudy.domain.repository.model.Language
@@ -25,6 +26,7 @@ import javax.inject.Inject
 class ArStudyRepositoryImpl @Inject constructor(
     private val api: ArStudyApi,
     private val dao: ArDao,
+    private val sharedPref: SharedPref,
 ) : ArStudyRepository {
 
     override suspend fun getCategories(langId: Int?): Resource<List<Category>> {
@@ -64,12 +66,16 @@ class ArStudyRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getLanguages(): Resource<List<Language>> {
+    override suspend fun getLanguages(currentLang: String): Resource<List<Language>> {
         return executeRequest {
             val response = api.getLanguages()
             val domainModels = response.map { it.toDomain() }
             coroutineScope {
                 launch(Dispatchers.IO) {
+                    val lang = domainModels.firstOrNull { it.code == currentLang }
+                    lang?.let {
+                        sharedPref.saveLangId(it.id)
+                    }
                     val dbModels = domainModels.map { it.toDb() }
                     dao.insertAll(*dbModels.toTypedArray())
                 }
@@ -122,6 +128,14 @@ class ArStudyRepositoryImpl @Inject constructor(
 
     override suspend fun exitApp() {
         dao.clearUser()
+    }
+
+    override suspend fun saveSelectedLangId(langId: Int) {
+        sharedPref.saveLangId(langId)
+    }
+
+    override suspend fun getSavedLangId(): Int {
+        return sharedPref.getLangId()
     }
 
     private suspend fun saveUser(user: User) {

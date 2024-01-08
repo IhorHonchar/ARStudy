@@ -7,11 +7,14 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import ua.com.honchar.arstudy.data.db.ArDao
 import ua.com.honchar.arstudy.data.db.Database
 import ua.com.honchar.arstudy.data.network.ArStudyApi
+import ua.com.honchar.arstudy.data.sharedPref.SharedPref
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -42,5 +45,11 @@ object AppModule {
     @Singleton
     fun provideArDao(database: Database): ArDao {
         return database.arDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSharedPref(@ApplicationContext context: Context): SharedPref {
+        return SharedPref(context)
     }
 }

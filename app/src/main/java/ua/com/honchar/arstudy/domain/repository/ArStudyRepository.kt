@@ -14,10 +14,12 @@ interface ArStudyRepository {
     suspend fun getModelsByCategory(categoryId: Int?, langId: Int?): Resource<List<Model>>
     suspend fun getModulesByCategory(categoryId: Int, langId: Int?): Resource<List<Module>>
     suspend fun getModuleLessons(moduleId: Int, langId: Int?): Resource<List<Lesson>>
-    suspend fun getLanguages(): Resource<List<Language>>
+    suspend fun getLanguages(currentLang: String): Resource<List<Language>>
     suspend fun getLanguagesDb(): Resource<List<Language>>
     suspend fun getUserDb(): Resource<User?>
     suspend fun login(login: String, pass: String): Resource<User>
     suspend fun register(login: String, pass: String, name: String?): Resource<User>
     suspend fun exitApp()
+    suspend fun saveSelectedLangId(langId: Int)
+    suspend fun getSavedLangId(): Int
 }

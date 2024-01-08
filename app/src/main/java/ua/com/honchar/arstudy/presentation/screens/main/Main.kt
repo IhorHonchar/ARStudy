@@ -94,9 +94,13 @@ fun Main() {
         },
         bottomBar = { AppBottomBar(navController = navController) }
     ) { innerPadding ->
-        MainNavigationGraph(navController, Modifier.padding(innerPadding)) {
-            topBarState = it
-        }
+        MainNavigationGraph(
+            navController = navController,
+            modifier = Modifier.padding(innerPadding),
+            updateTopBar = {
+                topBarState = it
+            }
+        )
     }
 }
 

@@ -19,13 +19,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,7 +34,6 @@ import ua.com.honchar.arstudy.domain.repository.model.Category
 import ua.com.honchar.arstudy.navigation.Screen
 import ua.com.honchar.arstudy.navigation.lerp
 import ua.com.honchar.arstudy.presentation.screens.BaseScreen
-import ua.com.honchar.arstudy.presentation.screens.main.SettingsDialog
 import ua.com.honchar.arstudy.preview.TwoThemePreview
 import ua.com.honchar.arstudy.ui.theme.ARStudyTheme
 import ua.com.honchar.arstudy.ui.theme.Typography
@@ -47,13 +44,8 @@ fun CategoriesScreen(
     viewModel: CategoriesViewModel = hiltViewModel(),
     navController: NavHostController,
 ) {
-
-    var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
-
-    if (showSettingsDialog) {
-        SettingsDialog(
-            onDismiss = { showSettingsDialog = false },
-        )
+    LaunchedEffect(key1 = Unit) {
+        viewModel.getCategories()
     }
 
     BaseScreen(

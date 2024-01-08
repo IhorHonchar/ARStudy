@@ -17,4 +17,7 @@
     <string name="confirm_exit_title">Підтвердити вихід</string>
     <string name="confirm">Підтверджую</string>
     <string name="cancel">Скасувати</string>
+    <string name="english">Англійська</string>
+    <string name="ukrainian">Українська</string>
+    <string name="language">Мова</string>
 </resources>

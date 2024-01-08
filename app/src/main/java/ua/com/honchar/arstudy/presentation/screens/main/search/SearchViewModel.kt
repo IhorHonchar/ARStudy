@@ -30,7 +30,7 @@ class SearchViewModel @Inject constructor(
                 isLoading = true,
                 error = null
             )
-            val langId = 1 // todo temporary solution
+            val langId = repository.getSavedLangId()
             when(val resource = repository.getCategories(langId)) {
                 is Resource.Success -> {
                     state = state.copy(
