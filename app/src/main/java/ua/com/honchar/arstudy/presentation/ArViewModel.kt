@@ -30,7 +30,7 @@ class ArViewModel @Inject constructor(private val repository: ArStudyRepository)
     var loader by mutableStateOf(false)
         private set
 
-    var showSpeaker by mutableStateOf(false)
+    var showSpeaker by mutableStateOf(true)
         private set
 
     private var tts: TextToSpeech? = null
@@ -57,7 +57,20 @@ class ArViewModel @Inject constructor(private val repository: ArStudyRepository)
             val speak = repository.getSpeakInfo()
             if (speak) {
                 initTts(context, lessonPartText)
+            } else {
+                showSpeaker = false
             }
+        }
+    }
+
+    fun speakerClick(context: Context, lessonPartText: String): Boolean {
+        return if (tts != null) {
+            destroyTts()
+            tts = null
+            false
+        } else {
+            initTts(context, lessonPartText)
+            true
         }
     }
 
@@ -78,7 +91,7 @@ class ArViewModel @Inject constructor(private val repository: ArStudyRepository)
                     val currentLocale = configuration.locales[0]
                     val result = tts?.setLanguage(currentLocale)
                     if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        showSpeaker = true
+                        showSpeaker = false
                     } else {
                         tts?.speak(
                             lessonPartText,
@@ -88,7 +101,7 @@ class ArViewModel @Inject constructor(private val repository: ArStudyRepository)
                         )
                     }
                 } else {
-                    showSpeaker = true
+                    showSpeaker = false
                 }
             }
         }

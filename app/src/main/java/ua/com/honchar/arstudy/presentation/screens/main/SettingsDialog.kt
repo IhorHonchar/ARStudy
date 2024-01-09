@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.Divider
@@ -16,10 +17,13 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,10 +39,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ua.com.honchar.arstudy.R
-import ua.com.honchar.arstudy.domain.repository.ArStudyRepository
 import ua.com.honchar.arstudy.domain.model.Language
-import ua.com.honchar.arstudy.ui.theme.Typography
+import ua.com.honchar.arstudy.domain.repository.ArStudyRepository
 import ua.com.honchar.arstudy.domain.repository.Resource
+import ua.com.honchar.arstudy.ui.theme.Typography
 import javax.inject.Inject
 
 @Composable
@@ -53,8 +57,16 @@ fun SettingsDialog(
         mutableStateOf(configuration.locales[0].toLanguageTag())
     }
 
-    var playText by remember {
-        mutableStateOf(true)
+    var playText by rememberSaveable {
+        mutableStateOf(viewModel.state.speakerOn)
+    }
+
+    LaunchedEffect(key1 = viewModel.state.speakerOn) {
+        playText = viewModel.state.speakerOn
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.checkSettings()
     }
 
     AlertDialog(
@@ -70,7 +82,7 @@ fun SettingsDialog(
         text = {
             Column {
 
-                viewModel.state.languages?.let { languages ->
+                if (viewModel.state.languages != null) {
                     Column {
                         Text(
                             text = stringResource(id = R.string.language),
@@ -79,11 +91,14 @@ fun SettingsDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                         Divider()
                         Spacer(modifier = Modifier.height(8.dp))
-                        languages.forEach { language ->
+                        viewModel.state.languages?.forEach { language ->
 
-                            Row(modifier = Modifier.clickable {
-                                selectedLocale = language.code
-                            }) {
+                            Row(modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    selectedLocale = language.code
+                                }
+                            ) {
                                 RadioButton(
                                     selected = selectedLocale == language.code,
                                     onClick = { selectedLocale = language.code }
@@ -101,42 +116,45 @@ fun SettingsDialog(
                         }
                     }
                 }
-                if (viewModel.state.speakerOn) {
-                    Column {
-                        Text(
-                            text = stringResource(id = R.string.play_text),
-                            style = Typography.titleLarge
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Divider()
-                        Spacer(modifier = Modifier.height(8.dp))
-                        listOf(
-                            (false to android.R.string.cancel),
-                            (true to android.R.string.ok)
-                        ).forEach { (play, testRes) ->
-                            Row(modifier = Modifier.clickable {
-                                playText = play
-                            }) {
-                                RadioButton(
-                                    selected = playText == play,
-                                    onClick = { playText = play }
-                                )
-                                Text(
-                                    text = stringResource(id = testRes),
-                                    style = Typography.bodyLarge,
-                                    modifier = Modifier.align(Alignment.CenterVertically)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
+                Column {
+                    Text(
+                        text = stringResource(id = R.string.play_text),
+                        style = Typography.titleLarge
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Divider()
+                    Spacer(modifier = Modifier.height(8.dp))
+                    listOf(
+                        (false to android.R.string.cancel),
+                        (true to android.R.string.ok)
+                    ).forEach { (play, testRes) ->
+                        Row(modifier = Modifier.clickable {
+                            playText = play
+                        }) {
+                            RadioButton(
+                                selected = playText == play,
+                                onClick = { playText = play }
+                            )
+                            Text(
+                                text = stringResource(id = testRes),
+                                style = Typography.bodyLarge,
+                                modifier = Modifier.align(Alignment.CenterVertically)
+                            )
                         }
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }
         },
         confirmButton = {
-            val selectedLang = viewModel.state.languages?.firstOrNull { it.code == selectedLocale }
-            selectedLang?.let {
-                viewModel.saveLang(it, context)
+            TextButton(
+                onClick = {
+                    viewModel.saveSpeakText(playText)
+                    viewModel.saveLang(selectedLocale, context)
+                    onDismiss.invoke()
+                }
+            ) {
+                Text(stringResource(id = R.string.save))
             }
         }
     )
@@ -150,22 +168,22 @@ class SettingsViewModel @Inject constructor(
     var state by mutableStateOf(SettingsState())
         private set
 
-    init {
-        getLanguages()
-    }
-
-    fun saveLang(lang: Language, context: Context) {
+    fun saveLang(localeTag: String, context: Context) {
         viewModelScope.launch {
-            repository.saveSelectedLangId(lang.id)
-            localeSelection(context, lang.code)
+            state.languages?.firstOrNull { it.code == localeTag }?.let { lang ->
+                repository.saveSelectedLangId(lang.id)
+                localeSelection(context, lang.code)
+            }
         }
     }
 
     fun saveSpeakText(speak: Boolean) {
-
+        viewModelScope.launch {
+            repository.saveSpeakInfo(speak)
+        }
     }
 
-    private fun getLanguages() {
+    fun checkSettings() {
         viewModelScope.launch {
             val speakerOn = repository.getSpeakInfo()
             state = when (val res = repository.getLanguagesDb()) {
