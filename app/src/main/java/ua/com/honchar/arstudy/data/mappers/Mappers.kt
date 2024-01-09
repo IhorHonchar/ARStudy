@@ -9,13 +9,13 @@ import ua.com.honchar.arstudy.data.network.lesson.response.LessonResponse
 import ua.com.honchar.arstudy.data.network.model.response.ModelResponse
 import ua.com.honchar.arstudy.data.network.module.response.ModuleResponse
 import ua.com.honchar.arstudy.data.network.user.response.UserResponse
-import ua.com.honchar.arstudy.domain.repository.model.Category
-import ua.com.honchar.arstudy.domain.repository.model.Language
-import ua.com.honchar.arstudy.domain.repository.model.Lesson
-import ua.com.honchar.arstudy.domain.repository.model.LessonPart
-import ua.com.honchar.arstudy.domain.repository.model.Model
-import ua.com.honchar.arstudy.domain.repository.model.Module
-import ua.com.honchar.arstudy.domain.repository.model.User
+import ua.com.honchar.arstudy.domain.model.Category
+import ua.com.honchar.arstudy.domain.model.Language
+import ua.com.honchar.arstudy.domain.model.Lesson
+import ua.com.honchar.arstudy.domain.model.LessonPart
+import ua.com.honchar.arstudy.domain.model.Model
+import ua.com.honchar.arstudy.domain.model.Module
+import ua.com.honchar.arstudy.domain.model.User
 
 fun CategoriesResponse.toDomain() = Category(
     id = id ?: 0,

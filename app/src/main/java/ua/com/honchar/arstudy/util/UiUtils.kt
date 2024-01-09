@@ -1,4 +1,4 @@
-package ua.com.honchar.arstudy.navigation
+package ua.com.honchar.arstudy.util
 
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong

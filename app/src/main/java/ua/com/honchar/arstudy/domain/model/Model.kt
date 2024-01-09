@@ -1,4 +1,4 @@
-package ua.com.honchar.arstudy.domain.repository.model
+package ua.com.honchar.arstudy.domain.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

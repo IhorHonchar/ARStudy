@@ -8,8 +8,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ua.com.honchar.arstudy.domain.repository.ArStudyRepository
-import ua.com.honchar.arstudy.domain.repository.model.Module
-import ua.com.honchar.arstudy.util.Resource
+import ua.com.honchar.arstudy.domain.model.Module
+import ua.com.honchar.arstudy.domain.repository.Resource
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,8 +26,7 @@ class ModulesViewModel @Inject constructor(
                 isLoading = true,
                 error = null
             )
-            val langId = repository.getSavedLangId()
-            when (val resource = repository.getModulesByCategory(categoryId, langId)) {
+            when (val resource = repository.getModulesByCategory(categoryId)) {
                 is Resource.Success -> {
                     state = state.copy(
                         data = resource.data,

@@ -9,8 +9,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import ua.com.honchar.arstudy.domain.repository.ArStudyRepository
-import ua.com.honchar.arstudy.domain.repository.model.User
-import ua.com.honchar.arstudy.util.Resource
+import ua.com.honchar.arstudy.domain.model.User
+import ua.com.honchar.arstudy.domain.repository.Resource
 import javax.inject.Inject
 
 @HiltViewModel

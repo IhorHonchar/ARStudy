@@ -2,9 +2,9 @@ package ua.com.honchar.arstudy.presentation
 
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -54,51 +54,35 @@ import io.github.sceneview.rememberModelLoader
 import io.github.sceneview.rememberNodes
 import kotlinx.coroutines.launch
 import ua.com.honchar.arstudy.R
-import ua.com.honchar.arstudy.domain.repository.model.Lesson
+import ua.com.honchar.arstudy.domain.model.Lesson
+import ua.com.honchar.arstudy.domain.model.LessonPart
 import ua.com.honchar.arstudy.extensions.parcelable
 import ua.com.honchar.arstudy.ui.theme.ARStudyTheme
 
 @AndroidEntryPoint
 class ArActivity : ComponentActivity() {
 
-    private var tts: TextToSpeech? = null
+    private val viewModel: ArViewModel by viewModels<ArViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val lesson = intent.extras.parcelable<Lesson>(MODEL)
         val path = intent.extras?.getString(JUST_PATH).orEmpty()
-//        tts = TextToSpeech(this) { status ->
-//            if (status == TextToSpeech.SUCCESS) {
-//                // Налаштуйте мову, виберіть українську
-//                val result = tts.setLanguage(Locale("uk_UA"))
-//                if (result == TextToSpeech.LANG_MISSING_DATA ||
-//                    result == TextToSpeech.LANG_NOT_SUPPORTED
-//                ) {
-//                    // Мову не підтримується, робіть відповідні дії
-//                } else {
-//                    tts.speak(
-//                        animal?.info,
-//                        TextToSpeech.QUEUE_FLUSH,
-//                        null,
-//                        "lang"
-//                    )
-//                    // TextToSpeech готовий до використання української мови
-//                }
-//            } else {
-//                // Помилка ініціалізації TextToSpeech
-//            }
-//        }
+
         setContent {
             ARStudyTheme {
-                ARAnimalScreen(lesson, path)
+                ARAnimalScreen(
+                    lesson = lesson,
+                    downloadedFileUri = path,
+                    viewModel = viewModel
+                )
             }
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        tts?.stop()
-        tts?.shutdown()
+        viewModel.destroyTts()
     }
 
     companion object {
@@ -112,7 +96,7 @@ class ArActivity : ComponentActivity() {
 fun ARAnimalScreen(
     lesson: Lesson?,
     downloadedFileUri: String,
-    viewModel: ArViewModel = hiltViewModel()
+    viewModel: ArViewModel,
 ) {
     Surface {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -126,6 +110,13 @@ fun ARAnimalScreen(
 
                 var currentLessonPart by remember {
                     mutableStateOf(lesson.lessonParts.first())
+                }
+
+                LaunchedEffect(key1 = Unit) {
+                    viewModel.checkSettings(context, currentLessonPart.text)
+                }
+                LaunchedEffect(key1 = currentLessonPart) {
+                    viewModel.updateTtsText(currentLessonPart.text)
                 }
 
                 val lessonPartIndex = lesson.lessonParts.indexOf(currentLessonPart)
@@ -180,13 +171,15 @@ fun ARAnimalScreen(
                     showBottomSheet = true
                 }
 
-                Image(
-                    painter = painterResource(id = R.drawable.ic_volume_up),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(30.dp)
-                )
+                if (viewModel.showSpeaker) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_volume_up),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(30.dp)
+                    )
+                }
 
                 BottomSheet(
                     showBottomSheet = showBottomSheet,

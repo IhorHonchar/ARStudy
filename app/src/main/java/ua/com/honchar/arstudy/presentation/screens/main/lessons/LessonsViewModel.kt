@@ -12,11 +12,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ua.com.honchar.arstudy.domain.repository.ArStudyRepository
-import ua.com.honchar.arstudy.domain.repository.model.Lesson
-import ua.com.honchar.arstudy.domain.repository.model.Model
+import ua.com.honchar.arstudy.domain.model.Lesson
 import ua.com.honchar.arstudy.extensions.checkFileIsDownloaded
 import ua.com.honchar.arstudy.extensions.downloadFile
-import ua.com.honchar.arstudy.util.Resource
+import ua.com.honchar.arstudy.domain.repository.Resource
 import java.io.FileNotFoundException
 import java.io.IOException
 import javax.inject.Inject
@@ -38,9 +37,8 @@ class LessonsViewModel @Inject constructor(
                 isLoading = true,
                 error = null
             )
-            val langId = repository.getSavedLangId()
             moduleId?.let {
-                when (val resource = repository.getModuleLessons(moduleId, langId)) {
+                when (val resource = repository.getModuleLessons(moduleId)) {
                     is Resource.Success -> {
                         state = state.copy(
                             data = resource.data,

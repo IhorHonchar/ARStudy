@@ -1,4 +1,4 @@
-package ua.com.honchar.arstudy.util
+package ua.com.honchar.arstudy.domain.repository
 
 sealed class Resource<T>(val data: T? = null, val message: String? = null) {
     class Success<T>(data: T?): Resource<T>(data)

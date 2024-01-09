@@ -20,4 +20,5 @@
     <string name="english">English</string>
     <string name="ukrainian">Ukrainian</string>
     <string name="language">Language</string>
+    <string name="play_text">Play text</string>
 </resources>

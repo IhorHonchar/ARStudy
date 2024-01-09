@@ -1,6 +1,7 @@
 package ua.com.honchar.arstudy.presentation
 
 import android.content.Context
+import android.speech.tts.TextToSpeech
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,8 +11,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ua.com.honchar.arstudy.domain.repository.model.LessonPart
-import ua.com.honchar.arstudy.domain.repository.model.Model
+import ua.com.honchar.arstudy.domain.model.LessonPart
+import ua.com.honchar.arstudy.domain.model.Model
+import ua.com.honchar.arstudy.domain.repository.ArStudyRepository
 import ua.com.honchar.arstudy.extensions.checkFileIsDownloaded
 import ua.com.honchar.arstudy.extensions.downloadFile
 import java.io.FileNotFoundException
@@ -20,13 +22,18 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class ArViewModel @Inject constructor() : ViewModel() {
+class ArViewModel @Inject constructor(private val repository: ArStudyRepository) : ViewModel() {
 
     var fileUri by mutableStateOf<String?>(null)
         private set
 
     var loader by mutableStateOf(false)
         private set
+
+    var showSpeaker by mutableStateOf(false)
+        private set
+
+    private var tts: TextToSpeech? = null
 
     fun getDownloadedModelUri(lessonPart: LessonPart, context: Context) {
         viewModelScope.launch {
@@ -44,6 +51,54 @@ class ArViewModel @Inject constructor() : ViewModel() {
             }
         }
     }
+
+    fun checkSettings(context: Context, lessonPartText: String) {
+        viewModelScope.launch {
+            val speak = repository.getSpeakInfo()
+            if (speak) {
+                initTts(context, lessonPartText)
+            }
+        }
+    }
+
+    fun updateTtsText(text: String) {
+        tts?.speak(
+            text,
+            TextToSpeech.QUEUE_FLUSH,
+            null,
+            "lang"
+        )
+    }
+
+    fun initTts(context: Context, lessonPartText: String) {
+        if (tts == null) {
+            tts = TextToSpeech(context) { status ->
+                if (status == TextToSpeech.SUCCESS) {
+                    val configuration = context.resources.configuration
+                    val currentLocale = configuration.locales[0]
+                    val result = tts?.setLanguage(currentLocale)
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        showSpeaker = true
+                    } else {
+                        tts?.speak(
+                            lessonPartText,
+                            TextToSpeech.QUEUE_FLUSH,
+                            null,
+                            "lang"
+                        )
+                    }
+                } else {
+                    showSpeaker = true
+                }
+            }
+        }
+    }
+
+    fun destroyTts() {
+        tts?.stop()
+        tts?.shutdown()
+    }
+
 
     private suspend fun downloadFile(
         model: Model,

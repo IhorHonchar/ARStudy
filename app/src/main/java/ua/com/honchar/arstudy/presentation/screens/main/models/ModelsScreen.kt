@@ -1,7 +1,6 @@
 package ua.com.honchar.arstudy.presentation.screens.main.models
 
 import android.content.Intent
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,7 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import ua.com.honchar.arstudy.domain.repository.model.Model
+import ua.com.honchar.arstudy.domain.model.Model
 import ua.com.honchar.arstudy.presentation.ArActivity
 import ua.com.honchar.arstudy.presentation.screens.BaseScreen
 import ua.com.honchar.arstudy.presentation.screens.main.categories.CardsPager

@@ -9,8 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import ua.com.honchar.arstudy.domain.repository.ArStudyRepository
-import ua.com.honchar.arstudy.util.Resource
-import java.util.regex.Pattern
+import ua.com.honchar.arstudy.domain.repository.Resource
 import javax.inject.Inject
 
 @HiltViewModel

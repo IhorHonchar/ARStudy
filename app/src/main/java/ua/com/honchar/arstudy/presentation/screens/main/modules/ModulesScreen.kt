@@ -1,6 +1,5 @@
 package ua.com.honchar.arstudy.presentation.screens.main.modules
 
-import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,13 +17,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavOptions
 import ua.com.honchar.arstudy.R
-import ua.com.honchar.arstudy.domain.repository.model.Module
+import ua.com.honchar.arstudy.domain.model.Module
 import ua.com.honchar.arstudy.navigation.Screen
 import ua.com.honchar.arstudy.presentation.screens.BaseScreen
 import ua.com.honchar.arstudy.presentation.screens.main.categories.CardsPager

@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,9 +36,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ua.com.honchar.arstudy.R
 import ua.com.honchar.arstudy.domain.repository.ArStudyRepository
-import ua.com.honchar.arstudy.domain.repository.model.Language
+import ua.com.honchar.arstudy.domain.model.Language
 import ua.com.honchar.arstudy.ui.theme.Typography
-import ua.com.honchar.arstudy.util.Resource
+import ua.com.honchar.arstudy.domain.repository.Resource
 import javax.inject.Inject
 
 @Composable
@@ -52,6 +53,10 @@ fun SettingsDialog(
         mutableStateOf(configuration.locales[0].toLanguageTag())
     }
 
+    var playText by remember {
+        mutableStateOf(true)
+    }
+
     AlertDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
         modifier = Modifier.widthIn(max = configuration.screenWidthDp.dp - 80.dp),
@@ -63,27 +68,67 @@ fun SettingsDialog(
             )
         },
         text = {
-            viewModel.state.languages?.let { languages ->
-                Column {
-                    Text(
-                        text = stringResource(id = R.string.language),
-                        style = Typography.titleLarge
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Divider()
-                    Spacer(modifier = Modifier.height(8.dp))
-                    languages.forEach { language ->
-                        Row {
-                            RadioButton(
-                                selected = selectedLocale == language.code,
-                                onClick = { selectedLocale = language.code }
-                            )
-                            val langString =
-                                language.getLangResId()?.let { stringResource(id = it) }
-                                    ?: language.code
-                            Text(text = langString, style = Typography.bodyLarge, modifier = Modifier.align(Alignment.CenterVertically))
-                        }
+            Column {
+
+                viewModel.state.languages?.let { languages ->
+                    Column {
+                        Text(
+                            text = stringResource(id = R.string.language),
+                            style = Typography.titleLarge
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
+                        Divider()
+                        Spacer(modifier = Modifier.height(8.dp))
+                        languages.forEach { language ->
+
+                            Row(modifier = Modifier.clickable {
+                                selectedLocale = language.code
+                            }) {
+                                RadioButton(
+                                    selected = selectedLocale == language.code,
+                                    onClick = { selectedLocale = language.code }
+                                )
+                                val langString =
+                                    language.getLangResId()?.let { stringResource(id = it) }
+                                        ?: language.code
+                                Text(
+                                    text = langString,
+                                    style = Typography.bodyLarge,
+                                    modifier = Modifier.align(Alignment.CenterVertically)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                }
+                if (viewModel.state.speakerOn) {
+                    Column {
+                        Text(
+                            text = stringResource(id = R.string.play_text),
+                            style = Typography.titleLarge
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Divider()
+                        Spacer(modifier = Modifier.height(8.dp))
+                        listOf(
+                            (false to android.R.string.cancel),
+                            (true to android.R.string.ok)
+                        ).forEach { (play, testRes) ->
+                            Row(modifier = Modifier.clickable {
+                                playText = play
+                            }) {
+                                RadioButton(
+                                    selected = playText == play,
+                                    onClick = { playText = play }
+                                )
+                                Text(
+                                    text = stringResource(id = testRes),
+                                    style = Typography.bodyLarge,
+                                    modifier = Modifier.align(Alignment.CenterVertically)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
                 }
             }
@@ -116,11 +161,16 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun saveSpeakText(speak: Boolean) {
+
+    }
+
     private fun getLanguages() {
         viewModelScope.launch {
+            val speakerOn = repository.getSpeakInfo()
             state = when (val res = repository.getLanguagesDb()) {
                 is Resource.Success -> {
-                    SettingsState(res.data)
+                    SettingsState(res.data, speakerOn)
                 }
 
                 is Resource.Error -> {
@@ -144,5 +194,6 @@ class SettingsViewModel @Inject constructor(
 
 data class SettingsState(
     val languages: List<Language>? = null,
+    val speakerOn: Boolean = false,
     val isError: Boolean = false
 )

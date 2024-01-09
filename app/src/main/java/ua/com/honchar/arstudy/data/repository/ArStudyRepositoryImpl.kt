@@ -14,13 +14,13 @@ import ua.com.honchar.arstudy.data.network.module.request.ModulesRequest
 import ua.com.honchar.arstudy.data.network.user.request.UserRequest
 import ua.com.honchar.arstudy.data.sharedPref.SharedPref
 import ua.com.honchar.arstudy.domain.repository.ArStudyRepository
-import ua.com.honchar.arstudy.domain.repository.model.Category
-import ua.com.honchar.arstudy.domain.repository.model.Language
-import ua.com.honchar.arstudy.domain.repository.model.Lesson
-import ua.com.honchar.arstudy.domain.repository.model.Model
-import ua.com.honchar.arstudy.domain.repository.model.Module
-import ua.com.honchar.arstudy.domain.repository.model.User
-import ua.com.honchar.arstudy.util.Resource
+import ua.com.honchar.arstudy.domain.model.Category
+import ua.com.honchar.arstudy.domain.model.Language
+import ua.com.honchar.arstudy.domain.model.Lesson
+import ua.com.honchar.arstudy.domain.model.Model
+import ua.com.honchar.arstudy.domain.model.Module
+import ua.com.honchar.arstudy.domain.model.User
+import ua.com.honchar.arstudy.domain.repository.Resource
 import javax.inject.Inject
 
 class ArStudyRepositoryImpl @Inject constructor(
@@ -29,18 +29,19 @@ class ArStudyRepositoryImpl @Inject constructor(
     private val sharedPref: SharedPref,
 ) : ArStudyRepository {
 
-    override suspend fun getCategories(langId: Int?): Resource<List<Category>> {
+    override suspend fun getCategories(): Resource<List<Category>> {
         return executeRequest {
+            val langId = getLangId()
             val response = api.getCategories(langId)
             response.map { it.toDomain() }
         }
     }
 
     override suspend fun getModelsByCategory(
-        categoryId: Int?,
-        langId: Int?
+        categoryId: Int?
     ): Resource<List<Model>> {
         return executeRequest {
+            val langId = getLangId()
             val requestData = ModelsRequest(categoryId, langId)
             val response = api.getModelsByCategory(requestData)
             response.map { it.toDomain() }
@@ -48,18 +49,19 @@ class ArStudyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getModulesByCategory(
-        categoryId: Int,
-        langId: Int?
+        categoryId: Int
     ): Resource<List<Module>> {
         return executeRequest {
+            val langId = getLangId()
             val requestData = ModulesRequest(categoryId, langId)
             val response = api.getModulesByCategory(requestData)
             response.map { it.toDomain() }
         }
     }
 
-    override suspend fun getModuleLessons(moduleId: Int, langId: Int?): Resource<List<Lesson>> {
+    override suspend fun getModuleLessons(moduleId: Int): Resource<List<Lesson>> {
         return executeRequest {
+            val langId = getLangId()
             val request = LessonsRequest(moduleId, langId)
             val response = api.getModuleLessons(request)
             response.map { it.toDomain() }
@@ -138,6 +140,14 @@ class ArStudyRepositoryImpl @Inject constructor(
         return sharedPref.getLangId()
     }
 
+    override suspend fun saveSpeakInfo(speak: Boolean) {
+        sharedPref.saveSpeakInfo(speak)
+    }
+
+    override suspend fun getSpeakInfo(): Boolean {
+        return sharedPref.getSpeakInfo()
+    }
+
     private suspend fun saveUser(user: User) {
         coroutineScope {
             launch(Dispatchers.IO + Job()) {
@@ -153,5 +163,9 @@ class ArStudyRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage.orEmpty())
         }
+    }
+
+    private suspend fun getLangId() = getSavedLangId().let {
+        if (it == -1) null else it
     }
 }

@@ -1,13 +1,11 @@
 package ua.com.honchar.arstudy.presentation.screens.main.search
 
-import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import ua.com.honchar.arstudy.R
-import ua.com.honchar.arstudy.domain.repository.model.Category
+import ua.com.honchar.arstudy.domain.model.Category
 import ua.com.honchar.arstudy.navigation.Screen
 import ua.com.honchar.arstudy.presentation.screens.BaseScreen
 import ua.com.honchar.arstudy.presentation.screens.main.categories.CategoriesContent

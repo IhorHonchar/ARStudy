@@ -1,4 +1,4 @@
-package ua.com.honchar.arstudy.domain.repository.model
+package ua.com.honchar.arstudy.domain.model
 
 data class User(
     val login: String,
